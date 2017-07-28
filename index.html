@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<canvas id="canvas" width="400" height="600" style="border: 1px solid gray"></canvas>
+<script>
+    var canvas = document.getElementById("canvas").getContext('2d');
+    var score = 0;
+    var isScore = false;
+    var i = 0;
+    //初速度
+    var v1 = 1;
+    //后来的速度
+    var v2;
+    var a = 1;
+    var imgSrcArr = ["images/0.gif", "images/1.gif", "images/2.gif"];
+
+    var dp = new downPipe("images/pipe.png", -100, 350, 100, 200);
+    var up = new upPipe("images/pipe.png", -100, 0, 100, 200);
+    var bd = new bird("imgSrcArr[i]", 150, 250, 40, 30);
+
+    //画下管道
+    function downPipe(imgSrc, x, y, width, height) {
+        this.imgSrc = imgSrc;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    }
+
+    function drawDownPipe() {
+        var downPipeImg = new Image();
+        downPipeImg.src = dp.imgSrc;
+        canvas.drawImage(downPipeImg, 0, 500, 150, 500, dp.x, dp.y, dp.width, dp.height);
+    }
+    //画上管道
+    function upPipe(imgSrc, x, y, width, height) {
+        this.imgSrc = imgSrc;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    }
+
+    function drawUpPipe() {
+        var upPipeImg = new Image();
+        upPipeImg.src = up.imgSrc;
+        canvas.drawImage(upPipeImg, 150, 500, 150, 800, up.x, up.y, up.width, up.height);
+    }
+
+    //移动管道
+    function movePipe() {
+        up.x = up.x - 5;
+        dp.x = dp.x - 5;
+        if (up.x < -100 || dp.x < -100) {
+            up.x = 400;
+            dp.x = 400;
+            isScore = true;
+            //管道 移出背景时再变化
+            up.height = parseInt(Math.random() * 400);
+            dp.y = up.height + 150;
+            dp.height = 600 - dp.y;
+        }
+        if (isScore && up.x < 150) {
+            score++;
+            isScore = false;
+        }
+        canvas.fillStyle="#ffffff";
+        canvas.font = "20px Accent";
+        canvas.fillText("Score:" + score, 150, 150);
+    }
+    //画小鸟
+    function bird(imgSrc, x, y, width, height) {
+        this.imgSrc = imgSrc;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    }
+
+    function drawBird() {
+        i++;
+        i = i % 3;
+        var birdImg = new Image();
+        birdImg.src = bd.imgSrc;
+        bd.imgSrc = imgSrcArr[i];
+        canvas.drawImage(birdImg, bd.x, bd.y, bd.width, bd.height);
+    }
+    //碰撞事件
+    function crash() {
+        if ((bd.x + bd.width > up.x && bd.y < up.y + up.height && bd.x < up.x + up.width) || (bd.x + bd.width > dp.x && bd.y + bd.height > dp.y && bd.x < dp.x + dp.width) || bd.y + bd.height == 550) {
+            clearInterval(timer);
+            canvas.fillStyle="#ffffff";
+            canvas.font = "30px Accent";
+            canvas.fillText("Game Over!", 180, 150);
+        }
+    }
+
+    //小鸟自由落体
+
+    function autoAdd() {
+        v2 = v1 + a;
+        bd.y = bd.y + (v1 + v2) / 2;
+    }
+    //按空格键控制小鸟
+    window.onkeydown = function (event) {
+        var e = event || window.event;
+        if (e.keyCode == 32) {
+            bd.y = bd.y - 15;
+        }
+    }
+    var timer = setInterval(function () {
+
+        //清理画布
+        canvas.clearRect(0, 0, 400, 600);
+        //画背景
+        var image = new Image();
+        image.src = "images/bg.png";
+        canvas.drawImage(image, 0, 0, 400, 600);
+        //上管道和下管道
+        drawDownPipe();
+        drawUpPipe();
+        //小鸟自由落体
+        autoAdd();
+        //移动管道
+        movePipe();
+        //小鸟碰撞管子
+        crash();
+        drawBird();
+        //画土地
+        var groundImg = new Image();
+        groundImg.src = "images/ground.png";
+        canvas.drawImage(groundImg, 0, 550, 400, 200);
+//        canvas.fillText("Score:" + score, 150, 150);
+    }, 50)
+</script>
+</body>
+</html>
